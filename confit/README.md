@@ -1,1 +1,3 @@
-[delete this and put your project build and use instructions here]
+### requirements
+`raco pkg install functional-lib`
+`raco pkg install megaparsack`
