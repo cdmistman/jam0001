@@ -1,6 +1,6 @@
 #lang brag
 
-jam-program: expr*
+begin: expr*
 @expr: apply | atom | quote | quasiquote | unquote | unquote-splicing | line-comment | block-comment
 apply: /OPEN expr* /CLOSE
 @atom: symbol | string | number

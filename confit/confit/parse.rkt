@@ -7,8 +7,21 @@
 
 (define (parse src)
   (let [[ast (syntax->datum (brag-parse (tokenise (port->string src))))]]
-    (write ast)
-    ast))
+    (process-ast ast)))
+
+(define (process-ast ast)
+  (match ast
+    [(list 'begin code ...) (cons 'begin (map process-ast code))]
+    [(list 'apply code ...) (map process-ast code)]
+    [(list 'quote val) (cons 'quote (list (process-ast val)))]
+    [(list 'quasiquote val) (cons 'quasiquote (list (process-ast val)))]
+    [(list 'unquote val) (cons 'unquote (list (process-ast val)))]
+    [(list 'unquote-splicing val) (cons 'unquote-splicing (list (process-ast val)))]
+    [(list 'line-comment val) `(comment #t ,(substring val 1 (- (string-length val) 1)))]
+    [(list 'block-comment val) `(comment #t ,(string-trim val ";;"))]
+    [(list 'symbol val) (string->symbol val)]
+    [(list 'string val) (string-trim val "\"")]
+    [(list 'number val) (string->number val)]))
 
 (define (tokenise str [tokens '[]])
   (if (equal? str "")
