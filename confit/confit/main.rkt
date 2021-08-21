@@ -8,6 +8,8 @@
 
 (define (jam/read in) 
   (define parsed (jam/parse in))
-  parsed)
+  #`(module confit-mod confit/expander
+       #,parsed))
 
 (define (jam/read-syntax source-name in) (jam/read in))
+
