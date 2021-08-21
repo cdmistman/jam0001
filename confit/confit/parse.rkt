@@ -6,7 +6,7 @@
 (provide (rename-out [parse jam/parse]))
 
 (define (parse src)
-  (let [[ast (syntax->datum (brag-parse (tokenise (port->string src))))]]
+  (let [[ast (syntax->datum (brag-parse (tokenise (string-replace (port->string src) "\r\n" "\n"))))]]
     (process-ast ast)))
 
 (define (process-ast ast)
