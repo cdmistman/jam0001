@@ -6,26 +6,36 @@
   megaparsack
   megaparsack/text)
 
-(struct confit-number (is-neg? digits))
-
 (define confit-ident/p
-  (many+/p (or/p
-            ; i think these are good enough?
-            letter/p
-            digit/p
-            (char/p #\')
-            (char/p #\-)
-            (char/p #\/))))
+  (do [start <- letter/p]
+    [rest <- (many/p (or/p
+                      ; i think these are good enough?
+                      letter/p
+                      digit/p
+                      (char/p #\')
+                      (char/p #\-)
+                      (char/p #\/)))]
+    (pure (list->string (cons start rest)))))
 
+(define (keyword/p word) ; prevents e.g. "definex" to match "define"
+  (do [kw <- (guard/p (many+/p (char-between/p #\a #\z)) (λ (chars) (equal? (list->string chars) word)))]
+    (pure (list->string kw))))
+
+(define whitespace?/p
+  (many/p space/p))
+
+(define (?/p p)
+  (many/p p #:max 1))
+
+(struct confit-number (is-neg? digits))
 (define confit-number/p
   (do 
-      [neg <- (try/p (char/p #\-))]
+      [neg <- (?/p (char/p #\-))]
     [digits <- (many+/p digit/p)]
-    (pure neg digits)))
+    (pure (confit-number neg digits))))
 
 (define (s-expr/p expr/p)
   (do 
-      ; (many)
       (string/p "(")
     [expr <- expr/p]
     (string/p ")")
@@ -35,7 +45,7 @@
 (define confit-expr-lit-number/p
   (do
       [number <- confit-number/p]
-    (pure ('Number number))))
+    (pure '(Number number))))
 
 (define confit-expr-lit/p
   (or/p
@@ -46,7 +56,8 @@
   (s-expr/p
    (do
        [name <- confit-ident/p]
-     [params <- (many/p (do many+/p (pure confit-ident/p)))]
+     whitespace?/p
+     [params <- (many/p confit-ident/p #:sep space/p)]
      (pure (confit-call name params)))))
 
 (struct confit-expr (kind expr))
@@ -61,8 +72,10 @@
 
 (define confit-define-untyped/p
   (do
-      (string/p "define")
+      (keyword/p "define")
+    whitespace?/p
     [name-or-binding <- (or/p confit-ident/p confit-call/p)]
+    whitespace?/p
     [expr <- confit-expr/p]
     (pure (confit-define #f name-or-binding expr))))
 
@@ -73,5 +86,5 @@
 
 (define confit/p
   (do (or/p
-       confit-define/p
+       (try/p confit-define/p)
        confit-expr/p)))
