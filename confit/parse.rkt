@@ -34,14 +34,14 @@
     (pure expr)))
 
 (struct confit-expr-lit (ty val))
-(define confit-expr-lit-number
+(define confit-expr-lit-number/p
   (do
     [number <- confit-number/p]
     (pure ('Number number))))
 
 (define confit-expr-lit/p
   (or/p
-    ))
+    confit-expr-lit-number/p))
 
 (struct confit-call (name params))
 (define confit-call/p
