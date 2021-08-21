@@ -3,11 +3,11 @@
 (require brag/support
          (rename-in "grammar.rkt" [parse brag-parse]))
 
-(provide parse)
+(provide (rename-out [parse jam/parse]))
 
 (define (parse src)
   (let [[ast (syntax->datum (brag-parse (tokenise (port->string src))))]]
-    ;(write ast)
+    (write ast)
     ast))
 
 (define (tokenise str [tokens '[]])
